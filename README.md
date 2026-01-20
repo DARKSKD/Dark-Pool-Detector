@@ -39,7 +39,7 @@ This repository is strictly **PRIVATE** and governed under Zetheta Algorithms IP
 ---
 
 ## System Architecture
-
+```
 Frontend (React + D3.js)
 |
 | REST API (JSON)
@@ -49,7 +49,7 @@ Backend (Flask)
 ├── Investigation Engine
 ├── Trade Simulator
 └── Alert Manager
-
+```
 
 ---
 
