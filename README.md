@@ -39,7 +39,7 @@ This repository is strictly **PRIVATE** and governed under Zetheta Algorithms IP
 ---
 
 ## System Architecture
-
+```
 Frontend (React + D3.js)
 |
 | REST API (JSON)
@@ -49,7 +49,7 @@ Backend (Flask)
 ├── Investigation Engine
 ├── Trade Simulator
 └── Alert Manager
-
+```
 
 ---
 
@@ -70,7 +70,7 @@ Backend (Flask)
 ---
 
 ## Project Structure
-
+```
 dark-pool-detective/
 │
 ├── backend/
@@ -89,7 +89,7 @@ dark-pool-detective/
 ├── README.md
 └── .gitignore
 
-
+```
 ---
 
 ## Running the Project (Local – PRIVATE)
@@ -129,4 +129,9 @@ All local copies must be deleted post handover
 ✔ Real-Time Dashboard Operational
 ✔ Investigation Suite Implemented
 ✔ Ready for Final Demo & IP Transfer
+
+
+### Future Work:
+- Unsupervised anomaly detection using Isolation Forest
+- LSTM-based sequence modeling for order flow
 
