@@ -70,7 +70,7 @@ Backend (Flask)
 ---
 
 ## Project Structure
-
+```
 dark-pool-detective/
 │
 ├── backend/
@@ -89,7 +89,7 @@ dark-pool-detective/
 ├── README.md
 └── .gitignore
 
-
+```
 ---
 
 ## Running the Project (Local – PRIVATE)
