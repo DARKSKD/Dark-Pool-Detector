@@ -130,3 +130,8 @@ All local copies must be deleted post handover
 ✔ Investigation Suite Implemented
 ✔ Ready for Final Demo & IP Transfer
 
+
+### Future Work:
+- Unsupervised anomaly detection using Isolation Forest
+- LSTM-based sequence modeling for order flow
+
