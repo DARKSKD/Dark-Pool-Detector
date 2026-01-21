@@ -1,3 +1,13 @@
+"""
+NOTE:
+This module represents the standalone detection engine used for
+modular architecture and future refactoring.
+
+For the MVP demo, a simplified inline version is used inside app.py
+to reduce integration complexity.
+"""
+
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pandas as pd
