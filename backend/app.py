@@ -234,21 +234,41 @@ def get_trades_by_symbol(symbol):
         trades = symbol_trades[-limit:]
     return jsonify(trades)
 
+# @app.route('/api/alerts', methods=['GET'])
+# def get_alerts():
+#     """Get current alerts"""
+#     with state.lock:
+#         alerts = state.detector.run_all()
+        
+#         # Update alert history
+#         for alert in alerts:
+#             if alert not in state.alert_history[-10:]:
+#                 state.alert_history.append(alert)
+        
+#         # Keep only last 100 alerts
+#         state.alert_history = state.alert_history[-100:]
+    
+#     return jsonify(alerts)
+
 @app.route('/api/alerts', methods=['GET'])
 def get_alerts():
-    """Get current alerts"""
+    """
+    Get current active alerts (real-time).
+    No deduplication is applied here to ensure
+    continuous visibility during live surveillance.
+    """
     with state.lock:
         alerts = state.detector.run_all()
-        
-        # Update alert history
+
+        # Store alerts in history (for audit / review only)
         for alert in alerts:
-            if alert not in state.alert_history[-10:]:
-                state.alert_history.append(alert)
-        
-        # Keep only last 100 alerts
+            state.alert_history.append(alert)
+
+        # Keep history bounded
         state.alert_history = state.alert_history[-100:]
-    
+
     return jsonify(alerts)
+
 
 @app.route('/api/alerts/history', methods=['GET'])
 def get_alert_history():
