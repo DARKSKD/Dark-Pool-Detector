@@ -13,6 +13,10 @@ The platform implements multiple **order-flow detection algorithms**, a **real-t
 
 This repository is strictly **PRIVATE** and governed under Zetheta Algorithms IP policies.
 
+
+https://github.com/user-attachments/assets/01a9325f-8cdf-4345-a064-a99591c6acc2
+
+
 ---
 
 ## Key Capabilities
