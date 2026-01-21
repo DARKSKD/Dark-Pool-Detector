@@ -47,7 +47,7 @@ Frontend (React + D3.js)
 Backend (Flask)
 ├── Detection Engine
 ├── Investigation Engine
-├── Trade Simulator
+├── Trade Simulator (High-TPS Batch Engine)
 └── Alert Manager
 ```
 
@@ -60,12 +60,13 @@ Backend (Flask)
 - Flask + Flask-CORS
 - Pandas, NumPy
 - Multithreading (real-time simulation)
+- **Waitress (Production WSGI Server)**
 
 ### Frontend
 - React 18
 - D3.js
 - Tailwind CSS
-- Vite
+- Vite (Production Build)
 
 ---
 
@@ -86,6 +87,11 @@ dark-pool-detective/
 │ ├── package.json
 │ └── vite.config.js
 │
+├── data-pipeline/
+│ ├── ingestion.py
+│ ├── processing.py
+│ └── storage.py
+│
 ├── README.md
 └── .gitignore
 
@@ -95,22 +101,30 @@ dark-pool-detective/
 ## Running the Project (Local – PRIVATE)
 
 ### Backend
+> ⚠️ Flask development server is **not** used for deployment.  
+> Backend runs on a **production WSGI server (Waitress)**.
 
 cd backend
 python -m venv myenv
 source myenv/bin/activate  # Windows: myenv\Scripts\activate
 pip install -r requirements.txt
+pip install waitress
 python app.py
 
-Backend runs at: http://localhost:5000
+Run backend using Waitress:
+
+``` waitress-serve --host=127.0.0.1 --port=5000 app:app  ```
+
+Backend available at: http://localhost:5000
 
 ### Frontend 
 
 cd frontend
 npm install
-npm run dev
+npm run build
+npm run preview
 
-Frontend runs at: http://localhost:5173
+Frontend runs at: http://localhost:4173
 
 ### Confidentiality & IP Notice
 
@@ -134,4 +148,8 @@ All local copies must be deleted post handover
 ### Future Work:
 - Unsupervised anomaly detection using Isolation Forest
 - LSTM-based sequence modeling for order flow
+- Persistent storage and historical replay
+- Integration with real market data feeds
+
+
 
