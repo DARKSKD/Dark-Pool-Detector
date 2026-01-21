@@ -1,7 +1,6 @@
 # Inline detection engine used for MVP demo simplicity.
 # Canonical engine design is defined in detection_engine.py
 
-
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pandas as pd
@@ -22,6 +21,8 @@ class TradingState:
         self.alert_history = []
         self.is_running = False
         self.lock = threading.Lock()
+        self.total_trades_generated = 0
+
 
 state = TradingState()
 
@@ -32,13 +33,13 @@ class DarkPoolDetector:
 
     def update_trades(self, new_trade):
         self.trade_window = pd.concat([self.trade_window, pd.DataFrame([new_trade])])
-        self.trade_window = self.trade_window.tail(500)
+        self.trade_window = self.trade_window.tail(3000)
 
     def iceberg_detector(self):
         grouped = self.trade_window.groupby(['symbol', 'price', 'side'])
         alerts = []
         for (symbol, price, side), grp in grouped:
-            if len(grp) > 8 and grp['quantity'].std() < 2:
+            if len(grp) > 5 and grp['quantity'].std() < 10:
                 total_qty = grp['quantity'].sum()
                 avg_qty = grp['quantity'].mean()
                 alerts.append({
@@ -86,10 +87,10 @@ class DarkPoolDetector:
             sell_vol = row.get('SELL', 1)
             ratio = buy_vol / (sell_vol + 1)
             
-            if ratio > 4:
+            if ratio > 2:
                 direction = 'BUY'
                 imbalance_pct = ((buy_vol - sell_vol) / (buy_vol + sell_vol)) * 100
-            elif ratio < 0.25:
+            elif ratio < 0.5:
                 direction = 'SELL'
                 imbalance_pct = ((sell_vol - buy_vol) / (buy_vol + sell_vol)) * 100
             else:
@@ -123,66 +124,138 @@ class DarkPoolDetector:
 state.detector = DarkPoolDetector()
 
 # Background trade generator with varied patterns
+# def generate_trades():
+#     base_prices = {"AAPL": 150.0, "TSLA": 152.0, "NVDA": 154.0, "GOOGL": 156.0}
+    
+#     while True:
+#         if state.is_running:
+#             with state.lock:
+#                 symbol = random.choice(["AAPL", "TSLA", "NVDA", "GOOGL"])
+                
+#                 # Create different trading patterns randomly
+#                 pattern = random.choice(['normal', 'iceberg', 'spike', 'imbalance', 'layering'])
+                
+#                 if pattern == 'iceberg':
+#                     # Iceberg: multiple similar-sized orders at same price
+#                     price = round(base_prices[symbol], 2)
+#                     quantity = random.choice([10, 10, 11, 12, 10])  # Very similar sizes
+#                     side = random.choice(["BUY", "SELL"])
+                    
+#                 elif pattern == 'spike':
+#                     # Volume spike: occasional large trade
+#                     price = round(base_prices[symbol] + random.uniform(-0.5, 0.5), 2)
+#                     quantity = random.choice([10, 10, 15, 50, 800, 1200])  # Occasional spike
+#                     side = random.choice(["BUY", "SELL"])
+                    
+#                 elif pattern == 'imbalance':
+#                     # Order flow imbalance: more buys or sells
+#                     price = round(base_prices[symbol] + random.uniform(-0.3, 0.3), 2)
+#                     quantity = random.choice([10, 20, 50, 100])
+#                     side = random.choice(["BUY", "BUY", "BUY", "SELL"])  # 75% buys
+                    
+#                 elif pattern == 'layering':
+#                     # Layering: frequent side switching at similar prices
+#                     price = round(base_prices[symbol], 2)
+#                     quantity = random.choice([10, 15, 20])
+#                     # Alternate sides frequently
+#                     side = "BUY" if random.random() > 0.5 else "SELL"
+                    
+#                 else:  # normal
+#                     price = round(base_prices[symbol] + random.uniform(-1, 1), 2)
+#                     quantity = random.choice([10, 15, 20, 50, 100, 200])
+#                     side = random.choice(["BUY", "SELL"])
+                
+#                 # Update base price with some drift
+#                 base_prices[symbol] += random.uniform(-0.1, 0.1)
+                
+#                 trade = {
+#                     "symbol": symbol,
+#                     "price": price,
+#                     "quantity": quantity,
+#                     "side": side,
+#                     "timestamp": datetime.now().isoformat()
+#                 }
+                
+#                 state.trade_log.append(trade)
+#                 state.detector.update_trades(trade)
+                
+#                 # Keep only last 1000 trades
+#                 if len(state.trade_log) > 1000:
+#                     state.trade_log = state.trade_log[-1000:]
+        
+#         time.sleep(0.5)
 def generate_trades():
     base_prices = {"AAPL": 150.0, "TSLA": 152.0, "NVDA": 154.0, "GOOGL": 156.0}
-    
+
+    min_tps = 1000
+    max_tps = 1500   # random bursts above 1000
+
     while True:
         if state.is_running:
+            batch = []
+            now = datetime.now().isoformat()
+
+            trades_per_second = random.randint(min_tps, max_tps)
+            state.total_trades_generated += trades_per_second
+
+
+            # ---- FIX 2: dominant pattern per batch ----
+            pattern = random.choice(["iceberg", "imbalance", "spike", "normal"])
+            dominant_symbol = random.choice(["AAPL", "TSLA", "NVDA", "GOOGL"])
+            dominant_price = round(base_prices[dominant_symbol], 2)
+
+
             with state.lock:
-                symbol = random.choice(["AAPL", "TSLA", "NVDA", "GOOGL"])
-                
-                # Create different trading patterns randomly
-                pattern = random.choice(['normal', 'iceberg', 'spike', 'imbalance', 'layering'])
-                
-                if pattern == 'iceberg':
-                    # Iceberg: multiple similar-sized orders at same price
-                    price = round(base_prices[symbol], 2)
-                    quantity = random.choice([10, 10, 11, 12, 10])  # Very similar sizes
-                    side = random.choice(["BUY", "SELL"])
-                    
-                elif pattern == 'spike':
-                    # Volume spike: occasional large trade
-                    price = round(base_prices[symbol] + random.uniform(-0.5, 0.5), 2)
-                    quantity = random.choice([10, 10, 15, 50, 800, 1200])  # Occasional spike
-                    side = random.choice(["BUY", "SELL"])
-                    
-                elif pattern == 'imbalance':
-                    # Order flow imbalance: more buys or sells
-                    price = round(base_prices[symbol] + random.uniform(-0.3, 0.3), 2)
-                    quantity = random.choice([10, 20, 50, 100])
-                    side = random.choice(["BUY", "BUY", "BUY", "SELL"])  # 75% buys
-                    
-                elif pattern == 'layering':
-                    # Layering: frequent side switching at similar prices
-                    price = round(base_prices[symbol], 2)
-                    quantity = random.choice([10, 15, 20])
-                    # Alternate sides frequently
-                    side = "BUY" if random.random() > 0.5 else "SELL"
-                    
-                else:  # normal
-                    price = round(base_prices[symbol] + random.uniform(-1, 1), 2)
-                    quantity = random.choice([10, 15, 20, 50, 100, 200])
-                    side = random.choice(["BUY", "SELL"])
-                
-                # Update base price with some drift
-                base_prices[symbol] += random.uniform(-0.1, 0.1)
-                
-                trade = {
-                    "symbol": symbol,
-                    "price": price,
-                    "quantity": quantity,
-                    "side": side,
-                    "timestamp": datetime.now().isoformat()
-                }
-                
-                state.trade_log.append(trade)
-                state.detector.update_trades(trade)
-                
-                # Keep only last 1000 trades
-                if len(state.trade_log) > 1000:
-                    state.trade_log = state.trade_log[-1000:]
-        
-        time.sleep(0.5)
+                for _ in range(trades_per_second):
+                    if pattern == "iceberg":
+                        symbol = dominant_symbol
+                        price = dominant_price
+                        quantity = random.choice([10, 10, 11, 12, 10])
+                        side = random.choice(["BUY", "SELL"])
+
+                    elif pattern == "imbalance":
+                        symbol = dominant_symbol
+                        price = round(base_prices[symbol] + random.uniform(-0.1, 0.1), 2)
+                        quantity = random.choice([50, 100, 200])
+                        side = random.choice(["BUY", "BUY", "BUY", "SELL"])
+
+                    elif pattern == "spike":
+                        symbol = dominant_symbol
+                        price = round(base_prices[symbol] + random.uniform(-0.5, 0.5), 2)
+                        quantity = random.choice([500, 1000, 2000, 5000])
+                        side = random.choice(["BUY", "SELL"])
+
+                    else:  # normal
+                        symbol = random.choice(["AAPL", "TSLA", "NVDA", "GOOGL"])
+                        price = round(base_prices[symbol] + random.uniform(-1, 1), 2)
+                        quantity = random.choice([10, 50, 100])
+                        side = random.choice(["BUY", "SELL"])
+
+                    trade = {
+                        "symbol": symbol,
+                        "price": price,
+                        "quantity": quantity,
+                        "side": side,
+                        "timestamp": datetime.now().isoformat()
+                    }
+
+                    batch.append(trade)
+                    base_prices[symbol] += random.uniform(-0.05, 0.05)
+
+
+                state.trade_log.extend(batch)
+
+                for trade in batch:
+                    state.detector.update_trades(trade)
+
+                if len(state.trade_log) > 10000:
+                    state.trade_log = state.trade_log[-10000:]
+
+            # Optional visibility (remove after testing)
+            print(f"Generated {trades_per_second} trades in 1 second")
+
+        time.sleep(1)
+
 
 # Start background thread
 trade_thread = threading.Thread(target=generate_trades, daemon=True)
@@ -196,7 +269,7 @@ def get_status():
     with state.lock:
         return jsonify({
             'is_running': state.is_running,
-            'total_trades': len(state.trade_log),
+            'total_trades': state.total_trades_generated,
             'total_alerts': len(state.alert_history)
         })
 
@@ -299,7 +372,7 @@ def get_summary():
         df = pd.DataFrame(state.trade_log)
         
         summary = {
-            'total_trades': len(df),
+            'total_trades': state.total_trades_generated,
             'total_volume': int(df['quantity'].sum()),
             'unique_symbols': int(df['symbol'].nunique()),
             'buy_volume': int(df[df['side'] == 'BUY']['quantity'].sum()),
@@ -369,5 +442,8 @@ def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
 
+# if __name__ == '__main__':
+#     app.run(debug=True, port=5000, threaded=True)
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000, threaded=True)
+    print("Run this app using Waitress, not Flask dev server.")
