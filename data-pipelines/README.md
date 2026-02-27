@@ -1,9 +1,5 @@
 # Data Pipeline Layer
 
-CONFIDENTIAL – Property of Zetheta Algorithms Private Limited
-
----
-
 ## Purpose
 
 This directory represents the **logical data pipeline architecture** of the Dark Pool Detective Platform.

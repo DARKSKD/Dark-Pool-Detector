@@ -1,20 +1,10 @@
 # Dark Pool Detective Platform
 
-CONFIDENTIAL – Property of Zetheta Algorithms Private Limited  
-Unauthorized access, use, or distribution is strictly prohibited.
-
----
-
 ## Overview
 
 The **Dark Pool Detective Platform** is a real-time market surveillance and forensic analytics system designed to detect hidden liquidity patterns, large block trades, and manipulative trading behaviors commonly associated with dark pool activity.
 
 The platform implements multiple **order-flow detection algorithms**, a **real-time visualization dashboard**, and a **forensic investigation suite** to reconstruct suspicious trading behavior.
-
-This repository is strictly **PRIVATE** and governed under Zetheta Algorithms IP policies.
-
-
-https://github.com/user-attachments/assets/01a9325f-8cdf-4345-a064-a99591c6acc2
 
 
 ---
@@ -154,6 +144,3 @@ All local copies must be deleted post handover
 - LSTM-based sequence modeling for order flow
 - Persistent storage and historical replay
 - Integration with real market data feeds
-
-
-
