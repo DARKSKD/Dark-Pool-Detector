@@ -7,6 +7,15 @@ The **Dark Pool Detective Platform** is a real-time market surveillance and fore
 The platform implements multiple **order-flow detection algorithms**, a **real-time visualization dashboard**, and a **forensic investigation suite** to reconstruct suspicious trading behavior.
 
 
+https://github.com/user-attachments/assets/c8b34209-f872-4e79-ae57-49f620805737
+
+
+
+
+
+
+
+
 ---
 
 ## Key Capabilities
